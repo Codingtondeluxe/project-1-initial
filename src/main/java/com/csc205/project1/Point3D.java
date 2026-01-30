@@ -1,446 +1,220 @@
 package com.csc205.project1;
 
-import java.util.logging.Logger;
+import java.util.Objects;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Represents a point in three-dimensional Cartesian space.
- * 
- * This class encapsulates the coordinates (x, y, z) of a point and provides
- * utility methods for common geometric operations such as distance calculation,
- * rotation, and vector operations.
- * 
- * Design Patterns and Principles:
- * 
- * 1. VALUE OBJECT PATTERN: This class represents an immutable value object where
- *    the state (x, y, z coordinates) is set at construction and cannot be modified.
- *    Operations that would "change" the point instead return new Point3D instances.
- *    This ensures thread-safety and predictable behavior.
- * 
- * 2. ENCAPSULATION: The coordinates are stored as private final fields, accessible
- *    only through getter methods. This prevents external modification and maintains
- *    data integrity.
- * 
- * 3. FLUENT INTERFACE (partial): Methods return Point3D objects, allowing for
- *    method chaining in some contexts.
- * 
- * Algorithmic Foundations:
- * 
- * - Distance calculations use the Euclidean distance formula (Pythagorean theorem
- *   in 3D space), demonstrating fundamental geometric algorithms with O(1) complexity.
- * 
- * - Rotation operations use rotation matrices from linear algebra, showing how
- *   matrix transformations apply to spatial data structures.
- * 
- * - The class serves as a building block for more complex spatial data structures
- *   like octrees, k-d trees, or point clouds used in computational geometry.
- * 
- * @author Your Name
- * @version 1.0
+ * A value object representing a point in three-dimensional Cartesian space.
+ *
+ * <p>
+ * This class is immutable by design. Once created, the coordinates of a
+ * {@code Point3D} instance cannot be modified. All transformation operations
+ * (such as rotation or translation) return new {@code Point3D} instances.
+ * </p>
  */
-public class Point3D {
-    
+public final class Point3D {
+
     private static final Logger logger = Logger.getLogger(Point3D.class.getName());
-    
+
     private final double x;
     private final double y;
     private final double z;
-    
+
     /**
-     * Constructs a new Point3D with the specified coordinates.
-     * 
-     * This constructor initializes the point's position in 3D space. The immutability
-     * of this object is guaranteed by making all fields final, which is a key principle
-     * in creating thread-safe data structures.
-     * 
+     * Creates a new {@code Point3D} with the given coordinates.
+     *
+     * <p>
+     * This constructor establishes the fundamental state of the object.
+     * Since the class is immutable, these values define the point for
+     * its entire lifetime.
+     * </p>
+     *
      * @param x the x-coordinate
      * @param y the y-coordinate
      * @param z the z-coordinate
      */
     public Point3D(double x, double y, double z) {
+        logger.log(Level.INFO, "Creating Point3D with coordinates ({0}, {1}, {2})",
+                new Object[]{x, y, z});
+
         this.x = x;
         this.y = y;
         this.z = z;
-        logger.log(Level.INFO, "Created new Point3D at ({0}, {1}, {2})", 
-                   new Object[]{x, y, z});
     }
-    
+
     /**
      * Returns the x-coordinate of this point.
-     * 
-     * Getter methods are fundamental to encapsulation, providing controlled read-only
-     * access to internal state. This ensures that the coordinate cannot be modified
-     * after construction, maintaining the immutability contract.
-     * 
-     * @return the x-coordinate
+     *
+     * @return the x value
      */
     public double getX() {
+        logger.log(Level.INFO, "Accessing x-coordinate: {0}", x);
         return x;
     }
-    
+
     /**
      * Returns the y-coordinate of this point.
-     * 
-     * @return the y-coordinate
+     *
+     * @return the y value
      */
     public double getY() {
+        logger.log(Level.INFO, "Accessing y-coordinate: {0}", y);
         return y;
     }
-    
+
     /**
      * Returns the z-coordinate of this point.
-     * 
-     * @return the z-coordinate
+     *
+     * @return the z value
      */
     public double getZ() {
+        logger.log(Level.INFO, "Accessing z-coordinate: {0}", z);
         return z;
     }
-    
+
     /**
-     * Calculates the Euclidean distance from this point to another point.
-     * 
-     * This method implements the 3D Euclidean distance formula:
-     * distance = sqrt((x2-x1)² + (y2-y1)² + (z2-z1)²)
-     * 
-     * The algorithm has O(1) time complexity and demonstrates fundamental geometric
-     * calculations used in spatial indexing, nearest-neighbor searches, and clustering
-     * algorithms.
-     * 
-     * Error handling: Returns Double.NaN if the other point is null, allowing the
-     * caller to handle invalid input gracefully.
-     * 
-     * @param other the point to calculate distance to
-     * @return the Euclidean distance between the two points, or Double.NaN if other is null
+     * Computes the Euclidean distance from this point to another point.
+     *
+     * <p>
+     * This method applies the standard 3D distance formula:
+     * </p>
+     *
+     * <pre>
+     * sqrt((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2)
+     * </pre>
+     *
+     * @param other the point to measure distance to
+     * @return the Euclidean distance
      */
     public double distanceTo(Point3D other) {
         if (other == null) {
-            logger.log(Level.WARNING, "Attempted to calculate distance to null point");
-            return Double.NaN;
+            logger.log(Level.SEVERE, "distanceTo called with null argument");
+            throw new IllegalArgumentException("Other point must not be null");
         }
-        
-        double dx = this.x - other.x;
-        double dy = this.y - other.y;
-        double dz = this.z - other.z;
-        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        
-        logger.log(Level.INFO, "Distance from ({0}, {1}, {2}) to ({3}, {4}, {5}) = {6}",
-                   new Object[]{this.x, this.y, this.z, other.x, other.y, other.z, distance});
-        
-        return distance;
+
+        logger.log(Level.INFO, "Computing distance from {0} to {1}", new Object[]{this, other});
+
+        double dx = other.x - this.x;
+        double dy = other.y - this.y;
+        double dz = other.z - this.z;
+
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
-    
+
     /**
-     * Calculates the distance from this point to the origin (0, 0, 0).
-     * 
-     * This is a specialized case of distance calculation that computes the magnitude
-     * or length of the position vector. It's commonly used in normalization operations
-     * and when determining if points lie within a certain radius of the origin.
-     * 
-     * @return the distance from this point to the origin
-     */
-    public double distanceFromOrigin() {
-        double distance = Math.sqrt(x * x + y * y + z * z);
-        logger.log(Level.INFO, "Distance from origin for point ({0}, {1}, {2}) = {3}",
-                   new Object[]{x, y, z, distance});
-        return distance;
-    }
-    
-    /**
-     * Rotates this point around the X-axis by the specified angle.
-     * 
-     * This method applies a rotation matrix transformation:
-     * [1    0         0    ] [x]
-     * [0  cos(θ)  -sin(θ) ] [y]
-     * [0  sin(θ)   cos(θ) ] [z]
-     * 
-     * The rotation follows the right-hand rule: positive angles rotate counterclockwise
-     * when looking from positive X toward the origin.
-     * 
-     * Returns a new Point3D instance, maintaining immutability. This is a key principle
-     * in functional programming and helps prevent bugs in concurrent environments.
-     * 
-     * @param angleRadians the rotation angle in radians
-     * @return a new Point3D representing the rotated point
-     */
-    public Point3D rotateX(double angleRadians) {
-        double cos = Math.cos(angleRadians);
-        double sin = Math.sin(angleRadians);
-        
-        double newY = y * cos - z * sin;
-        double newZ = y * sin + z * cos;
-        
-        logger.log(Level.INFO, "Rotated point ({0}, {1}, {2}) around X-axis by {3} radians to ({4}, {5}, {6})",
-                   new Object[]{x, y, z, angleRadians, x, newY, newZ});
-        
-        return new Point3D(x, newY, newZ);
-    }
-    
-    /**
-     * Rotates this point around the Y-axis by the specified angle.
-     * 
-     * This method applies a rotation matrix transformation:
-     * [ cos(θ)  0  sin(θ)] [x]
-     * [   0     1    0   ] [y]
-     * [-sin(θ)  0  cos(θ)] [z]
-     * 
-     * The rotation follows the right-hand rule: positive angles rotate counterclockwise
-     * when looking from positive Y toward the origin.
-     * 
-     * @param angleRadians the rotation angle in radians
-     * @return a new Point3D representing the rotated point
-     */
-    public Point3D rotateY(double angleRadians) {
-        double cos = Math.cos(angleRadians);
-        double sin = Math.sin(angleRadians);
-        
-        double newX = x * cos + z * sin;
-        double newZ = -x * sin + z * cos;
-        
-        logger.log(Level.INFO, "Rotated point ({0}, {1}, {2}) around Y-axis by {3} radians to ({4}, {5}, {6})",
-                   new Object[]{x, y, z, angleRadians, newX, y, newZ});
-        
-        return new Point3D(newX, y, newZ);
-    }
-    
-    /**
-     * Rotates this point around the Z-axis by the specified angle.
-     * 
-     * This method applies a rotation matrix transformation:
-     * [cos(θ)  -sin(θ)  0] [x]
-     * [sin(θ)   cos(θ)  0] [y]
-     * [  0        0     1] [z]
-     * 
-     * The rotation follows the right-hand rule: positive angles rotate counterclockwise
-     * when looking from positive Z toward the origin.
-     * 
-     * @param angleRadians the rotation angle in radians
-     * @return a new Point3D representing the rotated point
-     */
-    public Point3D rotateZ(double angleRadians) {
-        double cos = Math.cos(angleRadians);
-        double sin = Math.sin(angleRadians);
-        
-        double newX = x * cos - y * sin;
-        double newY = x * sin + y * cos;
-        
-        logger.log(Level.INFO, "Rotated point ({0}, {1}, {2}) around Z-axis by {3} radians to ({4}, {5}, {6})",
-                   new Object[]{x, y, z, angleRadians, newX, newY, z});
-        
-        return new Point3D(newX, newY, z);
-    }
-    
-    /**
-     * Calculates the midpoint between this point and another point.
-     * 
-     * The midpoint is calculated as the average of corresponding coordinates:
-     * midpoint = ((x1+x2)/2, (y1+y2)/2, (z1+z2)/2)
-     * 
-     * This is commonly used in divide-and-conquer algorithms, binary space partitioning,
-     * and interpolation techniques.
-     * 
-     * @param other the other point
-     * @return a new Point3D representing the midpoint, or null if other is null
-     */
-    public Point3D midpoint(Point3D other) {
-        if (other == null) {
-            logger.log(Level.WARNING, "Attempted to calculate midpoint with null point");
-            return null;
-        }
-        
-        double midX = (this.x + other.x) / 2.0;
-        double midY = (this.y + other.y) / 2.0;
-        double midZ = (this.z + other.z) / 2.0;
-        
-        logger.log(Level.INFO, "Calculated midpoint between ({0}, {1}, {2}) and ({3}, {4}, {5})",
-                   new Object[]{this.x, this.y, this.z, other.x, other.y, other.z});
-        
-        return new Point3D(midX, midY, midZ);
-    }
-    
-    /**
-     * Translates this point by the specified offset values.
-     * 
-     * Translation is a fundamental affine transformation that moves a point by adding
-     * offset values to each coordinate. This operation has O(1) complexity and is
-     * frequently used in animation, physics simulations, and coordinate system conversions.
-     * 
-     * @param dx the offset in the x direction
-     * @param dy the offset in the y direction
-     * @param dz the offset in the z direction
-     * @return a new Point3D representing the translated point
+     * Translates this point by the given offsets along each axis.
+     *
+     * <p>
+     * Translation is a fundamental geometric operation that shifts a point
+     * without altering its orientation.
+     * </p>
+     *
+     * @param dx offset along the x-axis
+     * @param dy offset along the y-axis
+     * @param dz offset along the z-axis
+     * @return a new translated {@code Point3D}
      */
     public Point3D translate(double dx, double dy, double dz) {
-        logger.log(Level.INFO, "Translating point ({0}, {1}, {2}) by ({3}, {4}, {5})",
-                   new Object[]{x, y, z, dx, dy, dz});
+        logger.log(Level.INFO, "Translating point {0} by ({1}, {2}, {3})",
+                new Object[]{this, dx, dy, dz});
+
         return new Point3D(x + dx, y + dy, z + dz);
     }
-    
+
     /**
-     * Scales this point by the specified factor relative to the origin.
-     * 
-     * Scaling multiplies each coordinate by the scale factor. This is useful for
-     * zooming operations, normalization, and coordinate system transformations.
-     * 
-     * Warning: A scale factor of 0 will collapse the point to the origin.
-     * 
-     * @param scale the scaling factor
-     * @return a new Point3D representing the scaled point
+     * Rotates this point around the X-axis by the given angle.
+     *
+     * <p>
+     * Rotation is performed using the standard 3D rotation matrix
+     * for the X-axis.
+     * </p>
+     *
+     * @param radians rotation angle in radians
+     * @return a new rotated {@code Point3D}
      */
-    public Point3D scale(double scale) {
-        if (scale == 0) {
-            logger.log(Level.WARNING, "Scaling point ({0}, {1}, {2}) by 0 - point will collapse to origin",
-                       new Object[]{x, y, z});
-        } else {
-            logger.log(Level.INFO, "Scaling point ({0}, {1}, {2}) by factor {3}",
-                       new Object[]{x, y, z, scale});
-        }
-        return new Point3D(x * scale, y * scale, z * scale);
+    public Point3D rotateAroundX(double radians) {
+        logger.log(Level.INFO, "Rotating point {0} around X-axis by {1} radians",
+                new Object[]{this, radians});
+
+        double cos = Math.cos(radians);
+        double sin = Math.sin(radians);
+
+        double newY = y * cos - z * sin;
+        double newZ = y * sin + z * cos;
+
+        return new Point3D(x, newY, newZ);
     }
-    
+
     /**
-     * Calculates the dot product of this point (treated as a vector) with another point.
-     * 
-     * The dot product is defined as: x1*x2 + y1*y2 + z1*z2
-     * 
-     * This operation is fundamental in computational geometry and has applications in:
-     * - Determining the angle between vectors
-     * - Projecting one vector onto another
-     * - Testing for orthogonality (dot product = 0)
-     * 
-     * @param other the other point/vector
-     * @return the dot product, or Double.NaN if other is null
+     * Rotates this point around the Y-axis by the given angle.
+     *
+     * @param radians rotation angle in radians
+     * @return a new rotated {@code Point3D}
      */
-    public double dotProduct(Point3D other) {
-        if (other == null) {
-            logger.log(Level.WARNING, "Attempted to calculate dot product with null point");
-            return Double.NaN;
-        }
-        
-        double result = this.x * other.x + this.y * other.y + this.z * other.z;
-        logger.log(Level.INFO, "Dot product of ({0}, {1}, {2}) and ({3}, {4}, {5}) = {6}",
-                   new Object[]{this.x, this.y, this.z, other.x, other.y, other.z, result});
-        
-        return result;
+    public Point3D rotateAroundY(double radians) {
+        logger.log(Level.INFO, "Rotating point {0} around Y-axis by {1} radians",
+                new Object[]{this, radians});
+
+        double cos = Math.cos(radians);
+        double sin = Math.sin(radians);
+
+        double newX = x * cos + z * sin;
+        double newZ = -x * sin + z * cos;
+
+        return new Point3D(newX, y, newZ);
     }
-    
+
     /**
-     * Calculates the cross product of this point (treated as a vector) with another point.
-     * 
-     * The cross product produces a vector perpendicular to both input vectors:
-     * result = (y1*z2 - z1*y2, z1*x2 - x1*z2, x1*y2 - y1*x2)
-     * 
-     * This operation is essential for:
-     * - Calculating surface normals in 3D graphics
-     * - Determining the area of parallelograms
-     * - Finding perpendicular vectors
-     * 
-     * @param other the other point/vector
-     * @return a new Point3D representing the cross product, or null if other is null
+     * Rotates this point around the Z-axis by the given angle.
+     *
+     * @param radians rotation angle in radians
+     * @return a new rotated {@code Point3D}
      */
-    public Point3D crossProduct(Point3D other) {
-        if (other == null) {
-            logger.log(Level.WARNING, "Attempted to calculate cross product with null point");
-            return null;
-        }
-        
-        double newX = this.y * other.z - this.z * other.y;
-        double newY = this.z * other.x - this.x * other.z;
-        double newZ = this.x * other.y - this.y * other.x;
-        
-        logger.log(Level.INFO, "Cross product of ({0}, {1}, {2}) and ({3}, {4}, {5})",
-                   new Object[]{this.x, this.y, this.z, other.x, other.y, other.z});
-        
-        return new Point3D(newX, newY, newZ);
+    public Point3D rotateAroundZ(double radians) {
+        logger.log(Level.INFO, "Rotating point {0} around Z-axis by {1} radians",
+                new Object[]{this, radians});
+
+        double cos = Math.cos(radians);
+        double sin = Math.sin(radians);
+
+        double newX = x * cos - y * sin;
+        double newY = x * sin + y * cos;
+
+        return new Point3D(newX, newY, z);
     }
-    
+
     /**
-     * Normalizes this point (treated as a vector) to unit length.
-     * 
-     * Normalization scales the vector so that its magnitude equals 1 while preserving
-     * its direction. This is crucial in graphics, physics, and many geometric algorithms.
-     * 
-     * The normalized vector is calculated by dividing each component by the vector's magnitude.
-     * 
-     * Error handling: If the point is at the origin (magnitude = 0), normalization is
-     * mathematically undefined. This method returns null and logs a severe error.
-     * 
-     * @return a new Point3D representing the normalized vector, or null if magnitude is 0
+     * Computes the magnitude (distance from the origin).
+     *
+     * @return the vector length of this point
      */
-    public Point3D normalize() {
-        double magnitude = distanceFromOrigin();
-        
-        if (magnitude == 0) {
-            logger.log(Level.SEVERE, "Cannot normalize zero vector at origin");
-            return null;
-        }
-        
-        logger.log(Level.INFO, "Normalizing vector ({0}, {1}, {2}) with magnitude {3}",
-                   new Object[]{x, y, z, magnitude});
-        
-        return new Point3D(x / magnitude, y / magnitude, z / magnitude);
+    public double magnitude() {
+        logger.log(Level.INFO, "Computing magnitude of point {0}", this);
+        return Math.sqrt(x * x + y * y + z * z);
     }
-    
-    /**
-     * Checks if this point is equal to another object.
-     * 
-     * Two points are considered equal if their coordinates are equal within a small
-     * epsilon tolerance (1e-10) to account for floating-point precision issues.
-     * 
-     * This demonstrates proper implementation of the equals() method contract, which
-     * is essential for using objects in hash-based collections and for correctness
-     * in data structure operations.
-     * 
-     * @param obj the object to compare with
-     * @return true if the points are equal within tolerance, false otherwise
-     */
+
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        
-        Point3D other = (Point3D) obj;
-        double epsilon = 1e-10;
-        
-        boolean equal = Math.abs(this.x - other.x) < epsilon &&
-                       Math.abs(this.y - other.y) < epsilon &&
-                       Math.abs(this.z - other.z) < epsilon;
-        
-        if (!equal) {
-            logger.log(Level.INFO, "Point equality check: ({0}, {1}, {2}) != ({3}, {4}, {5})",
-                       new Object[]{this.x, this.y, this.z, other.x, other.y, other.z});
-        }
-        
-        return equal;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Point3D)) return false;
+        Point3D point3D = (Point3D) o;
+        return Double.compare(point3D.x, x) == 0
+                && Double.compare(point3D.y, y) == 0
+                && Double.compare(point3D.z, z) == 0;
     }
-    
-    /**
-     * Returns a hash code for this point.
-     * 
-     * This method must be overridden whenever equals() is overridden to maintain
-     * the general contract for hashCode, which states that equal objects must have
-     * equal hash codes. This is critical for correct behavior in hash-based collections
-     * like HashMap and HashSet.
-     * 
-     * Uses the Objects.hash() utility method for a robust hash code calculation.
-     * 
-     * @return a hash code value for this point
-     */
+
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(x, y, z);
+        return Objects.hash(x, y, z);
     }
-    
-    /**
-     * Returns a string representation of this point.
-     * 
-     * The string format "Point3D(x, y, z)" provides clear, readable output for
-     * debugging and logging purposes. This follows the common convention for
-     * toString() implementations.
-     * 
-     * @return a string representation of this point
-     */
+
     @Override
     public String toString() {
-        return String.format("Point3D(%.2f, %.2f, %.2f)", x, y, z);
+        return "Point3D{" +
+                "x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                '}';
     }
 }
